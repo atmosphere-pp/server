@@ -8,13 +8,13 @@ object ArtistApplicationServiceFeature : Spek({
         val applicationService by memoized { ArtistApplicationService() }
 
         Scenario("enroll new artist") {
-            lateinit var createdArtistId: ArtistId
 
             When("enroll michael jackson") {
-                createdArtistId = applicationService.enrollNewArtist("michael jackson")
+                applicationService.enrollNewArtist("michael jackson")
             }
 
             Then("it can find artist id using name") {
+                val createdArtistId = applicationService.searchByName("michael jackson")
                 expectThat(createdArtistId).isA<ArtistId>()
             }
         }
@@ -26,14 +26,15 @@ object ArtistApplicationServiceFeature : Spek({
             val newName = "Las"
 
             Given("already enrolled artist") {
-                targetArtistId = applicationService.enrollNewArtist(enrolledName)
+                applicationService.enrollNewArtist(enrolledName)
+                targetArtistId = applicationService.searchByName(enrolledName)
             }
 
-            When("change artist name to '$newName'") {
+            When("artist change name to others") {
                 applicationService.changeName(targetArtistId, newName)
             }
 
-            Then("it can find artist id using new name('$newName').") {
+            Then("it can find artist id using new name") {
                 val artistId = applicationService.searchByName(newName)
                 expectThat(artistId)
                         .isA<ArtistId>()
@@ -57,11 +58,12 @@ object ArtistApplicationServiceFeature : Spek({
             val explain = "Billie Jean is a song in my first album."
             val sourceLink = "https://www.youtube.com/watch?v=Zi_XLOBDo_Y"
 
-            Given("enroll artist('$artistName')") {
-                artistId = applicationService.enrollNewArtist(artistName)
+            Given("artist already enrolled") {
+                applicationService.enrollNewArtist(artistName)
+                artistId = applicationService.searchByName(artistName)
             }
 
-            When("present new music('$title')") {
+            When("present new music") {
                 newMusicId = applicationService.presentNewMusic(artistId, title, explain, sourceLink)
             }
 
@@ -78,9 +80,11 @@ object ArtistApplicationServiceFeature : Spek({
             val explain = "Cooler Than the Cool은 4 the youth에 포함된 노래입니다."
             val sourceLink = "https://www.youtube.com/watch?v=myHhpAKor70"
 
-            Given("enroll artist('JUSTHIS', 'Paloalto')") {
-                val firstArtistId = applicationService.enrollNewArtist("JUSTHIS")
-                val secondArtistId = applicationService.enrollNewArtist("Paloalto")
+            Given("both artist already enrolled") {
+                applicationService.enrollNewArtist("JUSTHIS")
+                applicationService.enrollNewArtist("Paloalto")
+                val firstArtistId = applicationService.searchByName("JUSTHIS")
+                val secondArtistId = applicationService.searchByName("Paloalto")
                 artistList = listOf(firstArtistId, secondArtistId)
             }
 
@@ -93,7 +97,7 @@ object ArtistApplicationServiceFeature : Spek({
                 )
             }
 
-            Then("it can find artist id using name") {
+            Then("return new music id") {
                 expectThat(createdMusicId).isA<MusicId>()
             }
         }
@@ -109,8 +113,11 @@ object ArtistApplicationServiceFeature : Spek({
             val sourceLink = "https://www.youtube.com/watch?v=myHhpAKor70"
 
             Given("enroll artist and featuring artist") {
-                artistId = applicationService.enrollNewArtist(artistName)
-                val featuringArtistId = applicationService.enrollNewArtist("Huckleberry P")
+                applicationService.enrollNewArtist(artistName)
+                artistId = applicationService.searchByName(artistName)
+
+                applicationService.enrollNewArtist("Huckleberry P")
+                val featuringArtistId = applicationService.searchByName(artistName)
                 featuringArtistIdList = listOf(featuringArtistId)
             }
 
@@ -140,7 +147,8 @@ object ArtistApplicationServiceFeature : Spek({
             val sourceLink = "https://www.youtube.com/watch?v=bmkY2yc1K7Q"
 
             Given("enroll artist") {
-                artistId = applicationService.enrollNewArtist(artistName)
+                applicationService.enrollNewArtist(artistName)
+                artistId = applicationService.searchByName(artistName)
             }
 
             Given("enroll vocaloid") {
