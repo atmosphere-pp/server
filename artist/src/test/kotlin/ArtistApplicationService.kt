@@ -1,10 +1,14 @@
+import application.ArtistApplicationService
+import domain.artist.ArtistId
+import domain.music.MusicId
+import domain.vocaloid.VocaloidId
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.gherkin.*
 import strikt.api.*
 import strikt.assertions.*
 
 object ArtistApplicationServiceFeature : Spek({
-    Feature("ArtistApplicationService") {
+    Feature("Management Artist") {
         val applicationService by memoized { ArtistApplicationService() }
 
         Scenario("enroll new artist") {
@@ -14,7 +18,7 @@ object ArtistApplicationServiceFeature : Spek({
             }
 
             Then("it can find artist id using name") {
-                val createdArtistId = applicationService.searchByName("michael jackson")
+                val createdArtistId = applicationService.searchArtistByName("michael jackson")
                 expectThat(createdArtistId).isA<ArtistId>()
             }
         }
@@ -27,7 +31,7 @@ object ArtistApplicationServiceFeature : Spek({
 
             Given("already enrolled artist") {
                 applicationService.enrollNewArtist(enrolledName)
-                targetArtistId = applicationService.searchByName(enrolledName)
+                targetArtistId = applicationService.searchArtistByName(enrolledName)
             }
 
             When("artist change name to others") {
@@ -35,7 +39,7 @@ object ArtistApplicationServiceFeature : Spek({
             }
 
             Then("it can find artist id using new name") {
-                val artistId = applicationService.searchByName(newName)
+                val artistId = applicationService.searchArtistByName(newName)
                 expectThat(artistId)
                         .isA<ArtistId>()
                         .isEqualTo(targetArtistId)
@@ -45,13 +49,16 @@ object ArtistApplicationServiceFeature : Spek({
 //                 TODO: uncomment this assertion.
 //                expectCatching { applicationService.searchByName(enrolledName) }
 //                        .isFailure()
-//                        .isA<NotFoundArtistByName>()
+//                        .isA<domain.artist.NotFoundArtistByName>()
             }
         }
+    }
+
+    Feature("Present Music") {
+        val applicationService by memoized { ArtistApplicationService() }
 
         Scenario("artist present new music") {
             lateinit var artistId: ArtistId
-            lateinit var newMusicId: MusicId
 
             val artistName = "michael jackson"
             val title = "Billie Jean"
@@ -60,21 +67,21 @@ object ArtistApplicationServiceFeature : Spek({
 
             Given("artist already enrolled") {
                 applicationService.enrollNewArtist(artistName)
-                artistId = applicationService.searchByName(artistName)
+                artistId = applicationService.searchArtistByName(artistName)
             }
 
             When("present new music") {
-                newMusicId = applicationService.presentNewMusic(artistId, title, explain, sourceLink)
+                applicationService.presentNewMusic(artistId, title, explain, sourceLink)
             }
 
-            Then("return new music id") {
-                expectThat(newMusicId).isA<MusicId>()
+            Then("music can find artist's music list") {
+                val musicList = applicationService.getArtistMusicList(artistId)
+                expectThat(musicList).hasSize(1)
             }
         }
 
         Scenario("several artist present new music") {
             lateinit var artistList: List<ArtistId>
-            lateinit var createdMusicId: MusicId
 
             val title = "Cooler Than the Cool"
             val explain = "Cooler Than the Cool은 4 the youth에 포함된 노래입니다."
@@ -83,13 +90,13 @@ object ArtistApplicationServiceFeature : Spek({
             Given("both artist already enrolled") {
                 applicationService.enrollNewArtist("JUSTHIS")
                 applicationService.enrollNewArtist("Paloalto")
-                val firstArtistId = applicationService.searchByName("JUSTHIS")
-                val secondArtistId = applicationService.searchByName("Paloalto")
+                val firstArtistId = applicationService.searchArtistByName("JUSTHIS")
+                val secondArtistId = applicationService.searchArtistByName("Paloalto")
                 artistList = listOf(firstArtistId, secondArtistId)
             }
 
             When("present new music with several artist") {
-                createdMusicId = applicationService.presentNewMusicWithSeveralArtist(
+                applicationService.presentNewMusicWithSeveralArtist(
                         artistList,
                         title,
                         explain,
@@ -97,66 +104,37 @@ object ArtistApplicationServiceFeature : Spek({
                 )
             }
 
-            Then("return new music id") {
-                expectThat(createdMusicId).isA<MusicId>()
-            }
-        }
+            Then("music can find both artist's music list") {
+                val firstMusicList = applicationService.getArtistMusicList(artistList[0])
+                expectThat(firstMusicList).hasSize(1)
 
-        Scenario("artist present new music with other artist featuring") {
-            lateinit var artistId: ArtistId
-            lateinit var featuringArtistIdList: List<ArtistId>
-            lateinit var newMusicId: MusicId
-
-            val artistName = "JUSTHIS"
-            val title = "Cooler Than the Cool"
-            val explain = "Cooler Than the Cool은 4 the youth에 포함된 노래입니다."
-            val sourceLink = "https://www.youtube.com/watch?v=myHhpAKor70"
-
-            Given("enroll artist and featuring artist") {
-                applicationService.enrollNewArtist(artistName)
-                artistId = applicationService.searchByName(artistName)
-
-                applicationService.enrollNewArtist("Huckleberry P")
-                val featuringArtistId = applicationService.searchByName(artistName)
-                featuringArtistIdList = listOf(featuringArtistId)
-            }
-
-            When("present new music('$title') with featuring artist") {
-                newMusicId = applicationService.presentNewMusicWithFeaturing(
-                        artistId,
-                        featuringArtistIdList,
-                        title,
-                        explain,
-                        sourceLink
-                )
-            }
-
-            Then("return new music id") {
-                expectThat(newMusicId).isA<MusicId>()
+                val secondMusicList = applicationService.getArtistMusicList(artistList[1])
+                expectThat(secondMusicList).hasSize(1)
             }
         }
 
         Scenario("artist present new music that using vocaloid") {
             lateinit var artistId: ArtistId
-            lateinit var newMusicId: MusicId
             lateinit var vocaloidId: VocaloidId
 
-            val artistName = "Omoi"
             val title = "Teo"
             val explain = "Teo is an exciting band-type song."
             val sourceLink = "https://www.youtube.com/watch?v=bmkY2yc1K7Q"
 
             Given("enroll artist") {
+                val artistName = "Omoi"
                 applicationService.enrollNewArtist(artistName)
-                artistId = applicationService.searchByName(artistName)
+                artistId = applicationService.searchArtistByName(artistName)
             }
 
             Given("enroll vocaloid") {
-                vocaloidId = applicationService.enrollNewVocaloid("Hatsune Miku")
+                val vocaloidName = "Hatsune Miku"
+                applicationService.enrollNewVocaloid(vocaloidName)
+                vocaloidId = applicationService.findVocaloidByName(vocaloidName)
             }
 
             When("present new vocaloid music") {
-                newMusicId = applicationService.presentNewMusicWithVocaloid(
+                applicationService.presentNewMusicWithVocaloid(
                         artistId,
                         vocaloidId,
                         title,
@@ -165,8 +143,14 @@ object ArtistApplicationServiceFeature : Spek({
                 )
             }
 
-            Then("return new music id") {
-                expectThat(newMusicId).isA<MusicId>()
+            Then("music can find artist's music list") {
+                val musicList = applicationService.getArtistMusicList(artistId)
+                expectThat(musicList).hasSize(1)
+            }
+
+            Then("music can find vocaloid music list") {
+                val musicList = applicationService.getVocaloidMusicList(vocaloidId)
+                expectThat(musicList).hasSize(1)
             }
         }
     }
