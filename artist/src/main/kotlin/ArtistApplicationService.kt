@@ -23,7 +23,7 @@ class ArtistApplicationService {
         return VocaloidId("1")
     }
 
-    fun presentNewVocaloidSong(artistId: ArtistId, vocaloidId: VocaloidId, title: String, explain: String, sourceLink: String): MusicId {
+    fun presentNewMusicWithVocaloid(artistId: ArtistId, vocaloidId: VocaloidId, title: String, explain: String, sourceLink: String): MusicId {
         return MusicId("1")
     }
 }

@@ -156,7 +156,7 @@ object ArtistApplicationServiceFeature : Spek({
             }
 
             When("present new vocaloid music") {
-                newMusicId = applicationService.presentNewVocaloidSong(
+                newMusicId = applicationService.presentNewMusicWithVocaloid(
                         artistId,
                         vocaloidId,
                         title,
