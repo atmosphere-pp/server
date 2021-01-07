@@ -25,6 +25,9 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      - name: Run lint using gradle
+        run: gradle ktlintCheck
+
       # Runs a single command using the runners shell
       - name: Run test using gradle
         run: gradle test
