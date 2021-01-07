@@ -1,6 +1,5 @@
 import application.ArtistApplicationService
 import domain.artist.ArtistId
-import domain.music.MusicId
 import domain.vocaloid.VocaloidId
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.gherkin.*
@@ -41,8 +40,8 @@ object ArtistApplicationServiceFeature : Spek({
             Then("it can find artist id using new name") {
                 val artistId = applicationService.searchArtistByName(newName)
                 expectThat(artistId)
-                        .isA<ArtistId>()
-                        .isEqualTo(targetArtistId)
+                    .isA<ArtistId>()
+                    .isEqualTo(targetArtistId)
             }
 
             Then("it can't find artist id using before name('$enrolledName')") {
@@ -97,10 +96,10 @@ object ArtistApplicationServiceFeature : Spek({
 
             When("present new music with several artist") {
                 applicationService.presentNewMusicWithSeveralArtist(
-                        artistList,
-                        title,
-                        explain,
-                        sourceLink
+                    artistList,
+                    title,
+                    explain,
+                    sourceLink
                 )
             }
 
@@ -135,11 +134,11 @@ object ArtistApplicationServiceFeature : Spek({
 
             When("present new vocaloid music") {
                 applicationService.presentNewMusicWithVocaloid(
-                        artistId,
-                        vocaloidId,
-                        title,
-                        explain,
-                        sourceLink
+                    artistId,
+                    vocaloidId,
+                    title,
+                    explain,
+                    sourceLink
                 )
             }
 
