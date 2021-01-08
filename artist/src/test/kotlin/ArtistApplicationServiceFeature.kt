@@ -1,3 +1,6 @@
+import adapter.InMemoryArtistRepository
+import adapter.InMemoryMusicRepository
+import adapter.InMemoryVocaloidRepository
 import application.ArtistApplicationService
 import domain.artist.ArtistId
 import domain.vocaloid.VocaloidId
@@ -8,7 +11,13 @@ import strikt.assertions.*
 
 object ArtistApplicationServiceFeature : Spek({
     Feature("Management Artist") {
-        val applicationService by memoized { ArtistApplicationService() }
+        val applicationService by memoized {
+            ArtistApplicationService(
+                InMemoryMusicRepository(),
+                InMemoryArtistRepository(),
+                InMemoryVocaloidRepository(),
+            )
+        }
 
         Scenario("enroll new artist") {
 
@@ -54,7 +63,13 @@ object ArtistApplicationServiceFeature : Spek({
     }
 
     Feature("Present Music") {
-        val applicationService by memoized { ArtistApplicationService() }
+        val applicationService by memoized {
+            ArtistApplicationService(
+                InMemoryMusicRepository(),
+                InMemoryArtistRepository(),
+                InMemoryVocaloidRepository(),
+            )
+        }
 
         Scenario("artist present new music") {
             lateinit var artistId: ArtistId
