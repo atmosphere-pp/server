@@ -9,3 +9,4 @@
 
 rootProject.name = "atmosphere"
 include("artist")
+include("review")
